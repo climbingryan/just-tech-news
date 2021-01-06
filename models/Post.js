@@ -26,6 +26,7 @@ Post.init(
         },
         user_id: {
             type: DataTypes.INTEGER,
+                // part of the join statement
             references: {
                 model: 'user',
                 key: 'id'
