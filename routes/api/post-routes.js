@@ -1,6 +1,8 @@
+const sequelize = require('../../config/connection');
 const router = require('express').Router();
 const { isContext } = require('vm');
-const { Post, User } = require('../../models');
+const { Post, User, Vote } = require('../../models');
+
 
     // get all users
 router.get('/', (req, res) => {
@@ -58,6 +60,36 @@ router.post('/', (req, res) => {
           console.log(err);
           res.status(500).json(err);
       });
+});
+
+    // PUT /api/posts/upvote
+router.put('/upvote', (req, res) => {
+    Vote.create({
+        user_id: req.body.user_id,
+        post_id: req.body.post_id
+      }).then(() => {
+            // find post that was voted on
+        return Post.findOne({
+            where: {
+                id: req.body.post_id
+            },
+            attributes: [
+                'id',
+                'post_url',
+                'title',
+                'created_at',
+                [
+                    sequelize.literal('(SELECT COUNT(*) FROM vote WHERE post.id = vote.post_id)'),
+                    'vote_count'
+                ]
+            ]
+        })
+      })
+        .then(dbPostData => res.json(dbPostData))
+        .catch(err => {
+            console.log(err);
+            res.status(400).json(err);
+        });
 });
 
     // Change title of a Post
